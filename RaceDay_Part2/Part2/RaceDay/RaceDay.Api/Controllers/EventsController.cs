@@ -1,3 +1,4 @@
+using RaceDay.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Auth;
@@ -8,7 +9,7 @@ using RaceDay.Api.Models;
 namespace RaceDay.Api.Controllers;
 
 /// <summary>Browse events (public) and manage them (Organiser who owns the event).</summary>
-public class EventsController(RaceDayDbContext db) : ApiControllerBase
+public class EventsController(RaceDayDbContext db, IBlobStorageService blob) : ApiControllerBase
 {
     /// <summary>List published events. Role: none (public).</summary>
     /// <remarks>Draft events are hidden. Optionally filter with <c>?eventType=Run|Walk|Cycle</c>.</remarks>
@@ -165,5 +166,34 @@ public class EventsController(RaceDayDbContext db) : ApiControllerBase
         db.Events.Remove(ev);
         await db.SaveChangesAsync();
         return NoContent();
+    }
+    /// <summary>Upload or replace the banner image of an event you own. Role: Organiser (owner only).</summary>
+    /// <response code="200">Banner saved; returns its URL.</response>
+    /// <response code="400">Not a JPG/PNG/WEBP image, or larger than 5 MB.</response>
+    /// <response code="403">The event belongs to another Organiser.</response>
+    /// <response code="404">No such event.</response>
+    [HttpPost("api/events/{id:int}/banner")]
+    [SessionAuthorize(RoleNames.Organiser)]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    [ProducesResponseType(typeof(UploadResultDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<UploadResultDto>> UploadBanner(int id, IFormFile file)
+    {
+        var ev = await db.Events.SingleOrDefaultAsync(e => e.EventId == id);
+        if (ev is null) return NotFoundProblem($"Event {id} does not exist.");
+        if (ev.OrganiserId != CurrentUserId) return ForbiddenProblem("You can only change events that you own.");
+
+        try
+        {
+            var url = await blob.UploadImageAsync(file, "banners");
+            await blob.DeleteAsync(ev.BannerUrl);          // remove the old image
+            ev.BannerUrl = url;
+            await db.SaveChangesAsync();
+            return Ok(new UploadResultDto(url));
+        }
+        catch (ArgumentException ex)
+        {
+            return Invalid("file", ex.Message);
+        }
     }
 }
