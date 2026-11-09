@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 namespace RaceDay.Api.Models;
 
 /// <summary>Lookup table holding the two roles: Organiser and Participant.</summary>
@@ -14,6 +15,7 @@ public class Role
 /// </summary>
 public class AppUser
 {
+    [Key]
     public int UserId { get; set; }
     public int RoleId { get; set; }
     public Role Role { get; set; } = null!;
