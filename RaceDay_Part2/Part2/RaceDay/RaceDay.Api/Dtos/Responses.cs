@@ -3,13 +3,15 @@ using RaceDay.Api.Models;
 namespace RaceDay.Api.Dtos;
 
 public sealed record UserProfileDto(
-    int UserId, string FullName, string Email, string? PhoneNumber, string Role, DateTime CreatedAt);
+    int UserId, string FullName, string Email, string? PhoneNumber, string Role, DateTime CreatedAt,
+    string? ProfilePictureUrl = null);
 
 public sealed record LoginResponse(string Message, UserProfileDto User);
 
 public sealed record EventDto(
     int EventId, int OrganiserId, string OrganiserName, string Name, DateOnly EventDate,
-    string Location, string? Description, decimal DistanceKm, string EventType, string Status);
+    string Location, string? Description, decimal DistanceKm, string EventType, string Status,
+    string? BannerUrl = null);
 
 public sealed record CategoryDto(
     int CategoryId, int EventId, string Name, string CategoryType, decimal? DistanceKm,
@@ -23,15 +25,17 @@ public sealed record ResultDto(
     int ResultId, int EnrolmentId, int EventId, string EventName, int CategoryId, string CategoryName,
     string ParticipantName, int BibNumber, TimeOnly? FinishTime, int? Position, string Status);
 
+public sealed record UploadResultDto(string Url);
+
 /// <summary>Entity -> DTO mapping. The entities must be loaded with the navigation properties used below.</summary>
 public static class Mappers
 {
     public static UserProfileDto ToDto(this AppUser u) =>
-        new(u.UserId, u.FullName, u.Email, u.PhoneNumber, u.Role.RoleName, u.CreatedAt);
+        new(u.UserId, u.FullName, u.Email, u.PhoneNumber, u.Role.RoleName, u.CreatedAt, u.ProfilePictureUrl);
 
     public static EventDto ToDto(this Event e) =>
         new(e.EventId, e.OrganiserId, e.Organiser.FullName, e.Name, e.EventDate, e.Location,
-            e.Description, e.DistanceKm, e.EventType, e.Status);
+            e.Description, e.DistanceKm, e.EventType, e.Status, e.BannerUrl);
 
     public static CategoryDto ToDto(this Category c) =>
         new(c.CategoryId, c.EventId, c.Name, c.CategoryType, c.DistanceKm, c.MinAge, c.MaxAge,
