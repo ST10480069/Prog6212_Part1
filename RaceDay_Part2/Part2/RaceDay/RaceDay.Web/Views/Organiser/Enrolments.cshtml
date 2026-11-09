@@ -1,0 +1,33 @@
+@model EnrolmentsPageViewModel
+@{ ViewData["Title"] = "Enrolments"; }
+
+<a asp-action="Events" class="text-decoration-none">&larr; My events</a>
+<h1 class="rd-h1 mt-2">Enrolments</h1>
+<p class="rd-sub">@Model.Event.Name &middot; @Model.Event.EventDate.ToString("dd MMM yyyy") &middot; @Model.Enrolments.Count enrolled</p>
+
+@if (!Model.Enrolments.Any())
+{
+    <div class="rd-empty">Nobody has enrolled for this event yet.</div>
+}
+else
+{
+    <table class="table rd-table mb-0">
+        <thead><tr><th>Bib</th><th>Participant</th><th>Category</th><th>Enrolled</th><th>Status</th></tr></thead>
+        <tbody>
+        @foreach (var e in Model.Enrolments.OrderBy(x => x.CategoryName).ThenBy(x => x.BibNumber))
+        {
+            <tr>
+                <td><strong>#@e.BibNumber</strong></td>
+                <td>@e.ParticipantName</td>
+                <td>@e.CategoryName</td>
+                <td>@e.EnrolmentDate.ToLocalTime().ToString("dd MMM yyyy")</td>
+                <td><partial name="_StatusBadge" model="e.Status" /></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+<div class="mt-3">
+    <a class="btn btn-outline-rd" asp-action="Results" asp-route-eventId="@Model.Event.EventId">Enter results</a>
+</div>

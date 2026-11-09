@@ -1,0 +1,65 @@
+@model RegisterViewModel
+@{ ViewData["Title"] = "Sign up"; }
+
+<div class="rd-form-card">
+    <h1 class="rd-h1">Join RaceDay</h1>
+    <p class="rd-sub">Create an account to organise or enter events.</p>
+
+    <div class="rd-card"><div class="card-body">
+        <form asp-action="Register" method="post" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" autocomplete="name" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" autocomplete="tel" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">I am a…</label>
+                <select asp-for="Role" class="form-select" id="roleSelect">
+                    <option value="Participant">Participant (I want to enter events)</option>
+                    <option value="Organiser">Organiser (I run events)</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+            <div class="mb-3" id="codeGroup" style="display:none">
+                <label asp-for="OrganiserCode" class="form-label"></label>
+                <input asp-for="OrganiserCode" class="form-control" autocomplete="off" />
+                <div class="form-text">Organisers need the invite code issued by the RaceDay administrators.</div>
+                <span asp-validation-for="OrganiserCode" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                <div class="form-text">At least 8 characters.</div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-rd w-100">Create account</button>
+        </form>
+    </div></div>
+    <p class="text-center mt-3">Already registered? <a asp-action="Login">Log in</a></p>
+</div>
+
+@section Scripts {
+<script>
+    const sel = document.getElementById('roleSelect');
+    const grp = document.getElementById('codeGroup');
+    function toggle() { grp.style.display = sel.value === 'Organiser' ? 'block' : 'none'; }
+    sel.addEventListener('change', toggle);
+    toggle();
+</script>
+}

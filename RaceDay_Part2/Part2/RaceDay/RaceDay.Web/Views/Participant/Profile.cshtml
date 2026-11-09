@@ -1,0 +1,48 @@
+@model ProfileViewModel
+@{ ViewData["Title"] = "My profile"; }
+
+<div class="rd-form-card">
+    <h1 class="rd-h1">My profile</h1>
+    <p class="rd-sub">Keep your details up to date.</p>
+
+    <div class="rd-card"><div class="card-body">
+        <form asp-action="Profile" method="post" enctype="multipart/form-data" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+            <input type="hidden" asp-for="ProfilePictureUrl" />
+            <input type="hidden" asp-for="Email" />
+
+            <div class="text-center mb-4">
+                @if (!string.IsNullOrEmpty(Model.ProfilePictureUrl))
+                {
+                    <img class="rd-avatar" src="@Model.ProfilePictureUrl" alt="Profile picture" />
+                }
+                else
+                {
+                    <div class="rd-avatar d-inline-flex align-items-center justify-content-center text-white fs-1"><i class="bi bi-person-fill"></i></div>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input class="form-control" value="@Model.Email" disabled />
+            </div>
+            <div class="mb-3">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Picture" class="form-label"></label>
+                <input asp-for="Picture" type="file" accept="image/jpeg,image/png,image/webp" class="form-control" />
+                <div class="form-text">JPG, PNG or WEBP, up to 5 MB.</div>
+                <span asp-validation-for="Picture" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-rd w-100">Save profile</button>
+        </form>
+    </div></div>
+</div>

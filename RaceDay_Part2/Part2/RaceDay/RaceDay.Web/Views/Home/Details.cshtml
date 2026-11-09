@@ -1,0 +1,79 @@
+@model EventDetailsViewModel
+@{
+    var e = Model.Event;
+    ViewData["Title"] = e.Name;
+}
+
+<a asp-action="Index" class="text-decoration-none">&larr; All events</a>
+
+@if (!string.IsNullOrEmpty(e.BannerUrl))
+{
+    <img class="rd-banner rd-banner-lg mt-3" src="@e.BannerUrl" alt="@e.Name banner" />
+}
+else
+{
+    <div class="rd-banner rd-banner-lg rd-banner-placeholder mt-3"><i class="bi bi-trophy-fill"></i></div>
+}
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-7">
+        <h1 class="rd-h1">@e.Name <partial name="_StatusBadge" model="e.Status" /></h1>
+        <div class="rd-meta mb-1"><i class="bi bi-calendar-event"></i> @e.EventDate.ToString("dddd, dd MMMM yyyy")</div>
+        <div class="rd-meta mb-1"><i class="bi bi-geo-alt-fill"></i> @e.Location</div>
+        <div class="rd-meta mb-1"><i class="bi bi-signpost-split"></i> @e.DistanceKm.ToString("0.##") km &middot; @e.EventType</div>
+        <div class="rd-meta mb-3"><i class="bi bi-person-badge"></i> Organised by @e.OrganiserName</div>
+        <p style="white-space:pre-line">@e.Description</p>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="rd-card"><div class="card-body">
+            <h2 class="h4">Categories</h2>
+            @if (!e.Categories.Any())
+            {
+                <p class="text-muted mb-0">No categories have been added yet.</p>
+            }
+            else if (Model.CanEnrol && !Model.AlreadyEnrolled)
+            {
+                <form asp-action="Enrol" method="post">
+                    <input type="hidden" name="EventId" value="@e.EventId" />
+                    <div class="mb-3">
+                        @foreach (var c in e.Categories)
+                        {
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="CategoryId" id="cat@(c.CategoryId)" value="@c.CategoryId" required />
+                                <label class="form-check-label" for="cat@(c.CategoryId)">
+                                    <strong>@c.Name</strong> <span class="text-muted">(@c.Detail)</span>
+                                    <div class="small text-muted">@(c.Price > 0 ? $"R{c.Price:0.##}" : "Free") &middot; up to @c.MaxParticipants runners</div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <button type="submit" class="btn btn-rd w-100">Enrol now</button>
+                </form>
+            }
+            else
+            {
+                <ul class="list-unstyled mb-3">
+                    @foreach (var c in e.Categories)
+                    {
+                        <li class="mb-2"><strong>@c.Name</strong> <span class="text-muted">(@c.Detail)</span>
+                            <div class="small text-muted">@(c.Price > 0 ? $"R{c.Price:0.##}" : "Free") &middot; up to @c.MaxParticipants runners</div>
+                        </li>
+                    }
+                </ul>
+                @if (Model.AlreadyEnrolled)
+                {
+                    <div class="alert alert-info mb-0">You're already enrolled. See <a asp-controller="Participant" asp-action="MyEnrolments">My Enrolments</a>.</div>
+                }
+                else if (Context.Session.GetUser() == null)
+                {
+                    <a class="btn btn-rd w-100" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Log in to enrol</a>
+                }
+                else if (e.Status != "Published")
+                {
+                    <div class="alert alert-secondary mb-0">This event is @e.Status.ToLower() and is not open for enrolment.</div>
+                }
+            }
+        </div></div>
+    </div>
+</div>

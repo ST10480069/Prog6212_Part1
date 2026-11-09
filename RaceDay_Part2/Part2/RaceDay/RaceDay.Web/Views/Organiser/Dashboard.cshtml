@@ -1,0 +1,52 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+    <div>
+        <h1 class="rd-h1">Organiser dashboard</h1>
+        <p class="rd-sub mb-0">Your events at a glance.</p>
+    </div>
+    <a class="btn btn-rd" asp-action="CreateEvent"><i class="bi bi-plus-lg"></i> New event</a>
+</div>
+
+<div class="row g-3 my-3">
+    <div class="col-md-4"><div class="rd-stat"><div class="num">@Model.Events.Count</div><div class="lbl">Events created</div></div></div>
+    <div class="col-md-4"><div class="rd-stat"><div class="num">@Model.TotalEnrolments</div><div class="lbl">Total enrolments</div></div></div>
+    <div class="col-md-4"><div class="rd-stat">
+        <div class="num">@(Model.NextEvent != null ? Model.NextEvent.EventDate.ToString("dd MMM") : "—")</div>
+        <div class="lbl">Next event@(Model.NextEvent != null ? ": " + Model.NextEvent.Name : "")</div>
+    </div></div>
+</div>
+
+@if (!Model.Events.Any())
+{
+    <div class="rd-empty">You haven't created any events yet. <a asp-action="CreateEvent">Create your first event</a>.</div>
+}
+else
+{
+    <table class="table rd-table mb-0">
+        <thead><tr><th>Event</th><th>Date</th><th>Location</th><th class="text-center">Enrolments</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var e in Model.Events)
+        {
+            <tr>
+                <td><strong>@e.Name</strong><div class="small text-muted">@e.EventType &middot; @e.DistanceKm.ToString("0.##") km</div></td>
+                <td>@e.EventDate.ToString("dd MMM yyyy")
+                    @if (e.EventDate >= today) { <span class="rd-status status-confirmed ms-1">Upcoming</span> }
+                    else { <span class="rd-status status-completed ms-1">Past</span> }
+                </td>
+                <td>@e.Location</td>
+                <td class="text-center"><strong>@e.EnrolmentCount</strong></td>
+                <td><partial name="_StatusBadge" model="e.Status" /></td>
+                <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-rd" asp-action="Enrolments" asp-route-eventId="@e.EventId">Enrolments</a>
+                    <a class="btn btn-sm btn-outline-rd" asp-action="Results" asp-route-eventId="@e.EventId">Results</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

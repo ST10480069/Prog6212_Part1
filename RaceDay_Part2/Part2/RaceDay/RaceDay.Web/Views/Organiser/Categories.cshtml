@@ -1,0 +1,108 @@
+@model CategoriesPageViewModel
+@{ ViewData["Title"] = "Categories"; }
+
+<a asp-action="Events" class="text-decoration-none">&larr; My events</a>
+<h1 class="rd-h1 mt-2">Categories</h1>
+<p class="rd-sub">@Model.Event.Name &middot; @Model.Event.EventDate.ToString("dd MMM yyyy")</p>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        @if (!Model.Categories.Any())
+        {
+            <div class="rd-empty">No categories yet. Add an age or distance category.</div>
+        }
+        else
+        {
+            <table class="table rd-table mb-0">
+                <thead><tr><th>Name</th><th>Type</th><th>Details</th><th>Capacity</th><th>Fee</th><th></th></tr></thead>
+                <tbody>
+                @foreach (var c in Model.Categories)
+                {
+                    <tr>
+                        <td><strong>@c.Name</strong></td>
+                        <td>@c.CategoryType</td>
+                        <td>@c.Detail</td>
+                        <td>@c.MaxParticipants</td>
+                        <td>@(c.Price > 0 ? $"R{c.Price:0.##}" : "Free")</td>
+                        <td class="text-end">
+                            <form asp-action="DeleteCategory" method="post" class="d-inline"
+                                  onsubmit="return confirm('Remove this category?');">
+                                <input type="hidden" name="eventId" value="@Model.Event.EventId" />
+                                <input type="hidden" name="categoryId" value="@c.CategoryId" />
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="rd-card"><div class="card-body">
+            <h2 class="h4">Add category</h2>
+            <form asp-action="AddCategory" method="post" novalidate>
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                <input type="hidden" asp-for="Form.EventId" />
+                <div class="mb-3">
+                    <label asp-for="Form.Name" class="form-label">Name</label>
+                    <input asp-for="Form.Name" class="form-control" placeholder="e.g. 10km, Senior 50+" />
+                    <span asp-validation-for="Form.Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Form.CategoryType" class="form-label"></label>
+                    <select asp-for="Form.CategoryType" class="form-select" id="catType">
+                        <option value="Distance">Distance</option>
+                        <option value="Age">Age</option>
+                    </select>
+                </div>
+                <div class="mb-3" id="distanceGroup">
+                    <label asp-for="Form.DistanceKm" class="form-label"></label>
+                    <input asp-for="Form.DistanceKm" type="number" step="0.01" min="0.01" class="form-control" />
+                    <span asp-validation-for="Form.DistanceKm" class="text-danger"></span>
+                </div>
+                <div id="ageGroup" class="row">
+                    <div class="col-6 mb-3">
+                        <label asp-for="Form.MinAge" class="form-label"></label>
+                        <input asp-for="Form.MinAge" type="number" min="0" max="120" class="form-control" />
+                        <span asp-validation-for="Form.MinAge" class="text-danger"></span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label asp-for="Form.MaxAge" class="form-label"></label>
+                        <input asp-for="Form.MaxAge" type="number" min="0" max="120" class="form-control" />
+                        <span asp-validation-for="Form.MaxAge" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label asp-for="Form.MaxParticipants" class="form-label"></label>
+                        <input asp-for="Form.MaxParticipants" type="number" min="1" class="form-control" />
+                        <span asp-validation-for="Form.MaxParticipants" class="text-danger"></span>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label asp-for="Form.Price" class="form-label"></label>
+                        <input asp-for="Form.Price" type="number" step="0.01" min="0" class="form-control" />
+                        <span asp-validation-for="Form.Price" class="text-danger"></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-rd w-100">Add category</button>
+            </form>
+        </div></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const typeSel = document.getElementById('catType');
+    const dist = document.getElementById('distanceGroup');
+    const age = document.getElementById('ageGroup');
+    function toggle() {
+        const isDistance = typeSel.value === 'Distance';
+        dist.style.display = isDistance ? 'block' : 'none';
+        age.style.display = isDistance ? 'none' : 'flex';
+    }
+    typeSel.addEventListener('change', toggle);
+    toggle();
+</script>
+}

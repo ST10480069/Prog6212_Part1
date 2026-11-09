@@ -1,0 +1,50 @@
+@model ResultsEntryViewModel
+@{ ViewData["Title"] = "Enter results"; }
+
+<a asp-action="Events" class="text-decoration-none">&larr; My events</a>
+<h1 class="rd-h1 mt-2">Enter results</h1>
+<p class="rd-sub">@Model.EventName &middot; @Model.EventDate.ToString("dd MMM yyyy")</p>
+
+@if (Model.EventDate.Date > DateTime.Today)
+{
+    <div class="alert alert-warning">This event hasn't taken place yet. Results can be entered once it concludes.</div>
+}
+else if (!Model.Rows.Any())
+{
+    <div class="rd-empty">There are no confirmed enrolments to record results for.</div>
+}
+else
+{
+    <form asp-action="Results" method="post" novalidate>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        <input type="hidden" asp-for="EventId" />
+        <input type="hidden" asp-for="EventName" />
+        <input type="hidden" asp-for="EventDate" />
+
+        <table class="table rd-table mb-3">
+            <thead><tr><th>Bib</th><th>Participant</th><th>Category</th><th style="width:140px">Outcome</th><th style="width:170px">Finish time (hh:mm:ss)</th><th style="width:110px">Position</th></tr></thead>
+            <tbody>
+            @for (var i = 0; i < Model.Rows.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <strong>#@Model.Rows[i].BibNumber</strong>
+                        <input type="hidden" asp-for="Rows[i].EnrolmentId" />
+                        <input type="hidden" asp-for="Rows[i].ResultId" />
+                        <input type="hidden" asp-for="Rows[i].ParticipantName" />
+                        <input type="hidden" asp-for="Rows[i].CategoryName" />
+                        <input type="hidden" asp-for="Rows[i].BibNumber" />
+                    </td>
+                    <td>@Model.Rows[i].ParticipantName</td>
+                    <td>@Model.Rows[i].CategoryName</td>
+                    <td><select asp-for="Rows[i].Status" class="form-select" asp-items="@(new SelectList(new[] { "Finished", "DNF", "DQ" }))"></select></td>
+                    <td><input asp-for="Rows[i].FinishTime" class="form-control" placeholder="01:23:45" /></td>
+                    <td><input asp-for="Rows[i].Position" type="number" min="1" class="form-control" /></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <div class="form-text mb-3">DNF (did not finish) and DQ (disqualified) don't need a time or position.</div>
+        <button type="submit" class="btn btn-rd">Publish results</button>
+    </form>
+}

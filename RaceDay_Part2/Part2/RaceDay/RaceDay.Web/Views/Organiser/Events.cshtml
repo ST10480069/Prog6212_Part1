@@ -1,0 +1,43 @@
+@model List<EventDto>
+@{ ViewData["Title"] = "My events"; }
+
+<div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="rd-h1">My events</h1>
+        <p class="rd-sub mb-0">Create, edit and manage your events.</p>
+    </div>
+    <a class="btn btn-rd" asp-action="CreateEvent"><i class="bi bi-plus-lg"></i> New event</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="rd-empty">No events yet. <a asp-action="CreateEvent">Create one</a>.</div>
+}
+else
+{
+    <table class="table rd-table mb-0">
+        <thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Distance</th><th>Type</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td><strong>@e.Name</strong></td>
+                <td>@e.EventDate.ToString("dd MMM yyyy")</td>
+                <td>@e.Location</td>
+                <td>@e.DistanceKm.ToString("0.##") km</td>
+                <td>@e.EventType</td>
+                <td><partial name="_StatusBadge" model="e.Status" /></td>
+                <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-rd" asp-action="Categories" asp-route-eventId="@e.EventId">Categories</a>
+                    <a class="btn btn-sm btn-outline-rd" asp-action="Enrolments" asp-route-eventId="@e.EventId">Enrolments</a>
+                    <a class="btn btn-sm btn-outline-rd" asp-action="EditEvent" asp-route-id="@e.EventId">Edit</a>
+                    <form asp-action="DeleteEvent" asp-route-id="@e.EventId" method="post" class="d-inline"
+                          onsubmit="return confirm('Delete this event? This cannot be undone.');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

@@ -1,0 +1,68 @@
+@model HomeViewModel
+@{ ViewData["Title"] = "Upcoming events"; }
+
+<h1 class="rd-h1">Upcoming events</h1>
+<p class="rd-sub">Find your next start line.</p>
+
+<form method="get" class="rd-card mb-4"><div class="card-body">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label" for="Search">Name</label>
+            <input class="form-control" id="Search" name="Search" value="@Model.Filter.Search" placeholder="Search events" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="EventType">Event type</label>
+            <select class="form-select" id="EventType" name="EventType">
+                <option value="">All types</option>
+                @foreach (var t in Model.EventTypes)
+                {
+                    <option value="@t" selected="@(string.Equals(t, Model.Filter.EventType, StringComparison.OrdinalIgnoreCase))">@t</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="Location">Location</label>
+            <input class="form-control" id="Location" name="Location" value="@Model.Filter.Location" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" for="MaxDistance">Max km</label>
+            <input type="number" step="0.1" min="0" class="form-control" id="MaxDistance" name="MaxDistance" value="@Model.Filter.MaxDistance" />
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-rd flex-fill" type="submit">Filter</button>
+            <a class="btn btn-outline-secondary" asp-action="Index">Reset</a>
+        </div>
+    </div>
+</div></form>
+
+@if (!Model.Events.Any())
+{
+    <div class="rd-empty">No upcoming events match your search.</div>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var e in Model.Events)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="rd-card rd-event-card">
+                    @if (!string.IsNullOrEmpty(e.BannerUrl))
+                    {
+                        <img class="rd-banner" src="@e.BannerUrl" alt="@e.Name banner" />
+                    }
+                    else
+                    {
+                        <div class="rd-banner rd-banner-placeholder"><i class="bi bi-trophy-fill"></i></div>
+                    }
+                    <div class="card-body">
+                        <h3 class="h4 mb-2">@e.Name</h3>
+                        <div class="rd-meta mb-1"><i class="bi bi-calendar-event"></i> @e.EventDate.ToString("ddd, dd MMM yyyy")</div>
+                        <div class="rd-meta mb-1"><i class="bi bi-geo-alt-fill"></i> @e.Location</div>
+                        <div class="rd-meta mb-3"><i class="bi bi-signpost-split"></i> @e.DistanceKm.ToString("0.##") km &middot; @e.EventType</div>
+                        <a class="btn btn-rd w-100" asp-action="Details" asp-route-id="@e.EventId">View details</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
