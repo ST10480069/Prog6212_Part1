@@ -1,3 +1,4 @@
+using RaceDay.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDay.Api.Auth;
@@ -10,7 +11,7 @@ namespace RaceDay.Api.Controllers;
 [Route("api/users/me")]
 [SessionAuthorize]
 [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
-public class UsersController(RaceDayDbContext db) : ApiControllerBase
+public class UsersController(RaceDayDbContext db, IBlobStorageService blob) : ApiControllerBase
 {
     /// <summary>View my profile. Role: any logged-in user.</summary>
     /// <returns>The profile of the user in the current session.</returns>
@@ -43,5 +44,28 @@ public class UsersController(RaceDayDbContext db) : ApiControllerBase
         user.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
         await db.SaveChangesAsync();
         return Ok(user.ToDto());
+    }
+    /// <summary>Upload or replace my profile picture. Role: any logged-in user.</summary>
+    [HttpPost("picture")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(6 * 1024 * 1024)]
+    [ProducesResponseType(typeof(UploadResultDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<UploadResultDto>> UploadPicture(IFormFile file)
+    {
+        var user = await db.Users.Include(u => u.Role).SingleOrDefaultAsync(u => u.UserId == CurrentUserId);
+        if (user is null) return NotFoundProblem("User not found.");
+
+        try
+        {
+            var url = await blob.UploadImageAsync(file, "profiles");
+            await blob.DeleteAsync(user.ProfilePictureUrl);
+            user.ProfilePictureUrl = url;
+            await db.SaveChangesAsync();
+            return Ok(new UploadResultDto(url));
+        }
+        catch (ArgumentException ex)
+        {
+            return Invalid("file", ex.Message);
+        }
     }
 }
