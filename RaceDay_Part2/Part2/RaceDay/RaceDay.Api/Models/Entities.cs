@@ -23,6 +23,7 @@ public class AppUser
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public string? PhoneNumber { get; set; }
+    public string? ProfilePictureUrl { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public ICollection<Event> OrganisedEvents { get; set; } = new List<Event>();
@@ -44,6 +45,7 @@ public class Event
     public string EventType { get; set; } = EventTypes.Run;
     /// <summary>Draft, Published, Cancelled or Completed.</summary>
     public string Status { get; set; } = EventStatuses.Published;
+    public string? BannerUrl { get; set; }
 
     public ICollection<Category> Categories { get; set; } = new List<Category>();
 }
