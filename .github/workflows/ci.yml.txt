@@ -1,0 +1,38 @@
+name: RaceDay CI
+
+on:
+  push:
+    branches: [ main, part3 ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  SOLUTION_DIR: RaceDay_Part2/Part2/RaceDay
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: |
+          dotnet restore $SOLUTION_DIR/RaceDay.Api/RaceDay.Api.csproj
+          dotnet restore $SOLUTION_DIR/RaceDay.Tests/RaceDay.Tests.csproj
+          dotnet restore $SOLUTION_DIR/RaceDay.Web/RaceDay.Web.csproj
+
+      - name: Build API
+        run: dotnet build $SOLUTION_DIR/RaceDay.Api/RaceDay.Api.csproj --configuration Release --no-restore
+
+      - name: Build MVC
+        run: dotnet build $SOLUTION_DIR/RaceDay.Web/RaceDay.Web.csproj --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test $SOLUTION_DIR/RaceDay.Tests/RaceDay.Tests.csproj --configuration Release --verbosity normal
+
+      - name: Build MVC Docker image
+        run: docker build -t raceday-web $SOLUTION_DIR/RaceDay.Web

@@ -1,12 +1,11 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Azure.Storage.Sas;
 
 namespace RaceDay.Api.Services;
 
 public interface IBlobStorageService
 {
-    /// <summary>Uploads an image and returns a read-only link to it.</summary>
+    /// <summary>Uploads an image and returns its public URL.</summary>
     Task<string> UploadImageAsync(IFormFile file, string folder, CancellationToken ct = default);
     Task DeleteAsync(string? blobUrl, CancellationToken ct = default);
 }
@@ -21,7 +20,7 @@ public class BlobStorageService : IBlobStorageService
 
     public BlobStorageService(IConfiguration config) => _config = config;
 
-    // Created on first use, so the API (and the unit tests) start fine even without Azure configured.
+    // Created on first use, so the API (and your unit tests) start fine even without Azure configured.
     private async Task<BlobContainerClient> GetContainerAsync(CancellationToken ct)
     {
         if (_container != null) return _container;
@@ -31,7 +30,7 @@ public class BlobStorageService : IBlobStorageService
             throw new InvalidOperationException("AzureBlob:ConnectionString is not configured.");
 
         var client = new BlobContainerClient(conn, _config["AzureBlob:ContainerName"] ?? "raceday-images");
-        await client.CreateIfNotExistsAsync(cancellationToken: ct);   // private container
+        await client.CreateIfNotExistsAsync(PublicAccessType.Blob, cancellationToken: ct);   // public read so <img> works
         _container = client;
         return client;
     }
@@ -51,8 +50,7 @@ public class BlobStorageService : IBlobStorageService
             HttpHeaders = new BlobHttpHeaders { ContentType = file.ContentType }
         }, ct);
 
-        // The container is private, so return a read-only link that is valid for one year
-        return blob.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddYears(1)).ToString();
+        return blob.Uri.ToString();
     }
 
     public async Task DeleteAsync(string? blobUrl, CancellationToken ct = default)

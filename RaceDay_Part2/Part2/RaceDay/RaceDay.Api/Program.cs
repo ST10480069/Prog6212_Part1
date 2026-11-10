@@ -41,7 +41,6 @@ builder.Services.AddSwaggerGen(options =>
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath)) options.IncludeXmlComments(xmlPath);
 });
-builder.Services.AddSingleton<RaceDay.Api.Services.IBlobStorageService, RaceDay.Api.Services.BlobStorageService>();
 
 var app = builder.Build();
 
